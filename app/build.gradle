@@ -11,16 +11,34 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {//签名的配置
+        myconfigs {
+            storeFile file('D:/AndroidStudio/ScouceTreeWorkspace/MyJenkinsTest/app/epointkey.jks')
+            storePassword '123456'
+            keyAlias 'alad'
+            keyPassword '123456'
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+
+        mybuildType {
+            minifyEnabled false
+            zipAlignEnabled true
+            signingConfig signingConfigs.myconfigs
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
+
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
