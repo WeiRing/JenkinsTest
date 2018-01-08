@@ -15,10 +15,14 @@ android {
     signingConfigs {//签名的配置
         myconfigs {
         //    storeFile file('D:/AndroidStudio/ScouceTreeWorkspace/MyJenkinsTest/app/epointkey.jks')
-            storeFile file('./epointkey.jks')
+           /* storeFile file('./epointkey.jks')
             storePassword '123456'
             keyAlias 'alad'
-            keyPassword '123456'
+            keyPassword '123456'*/
+            storeFile file(project.STORE_FILE)
+            storePassword project.STORE_PASSWORD
+            keyAlias project.KEY_ALIAS
+            keyPassword project.KEY_PASSWORD
         }
     }
 
