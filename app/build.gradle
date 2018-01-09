@@ -14,11 +14,6 @@ android {
 
     signingConfigs {//签名的配置
         myconfigs {
-        //    storeFile file('D:/AndroidStudio/ScouceTreeWorkspace/MyJenkinsTest/app/epointkey.jks')
-           /* storeFile file('./epointkey.jks')
-            storePassword '123456'
-            keyAlias 'alad'
-            keyPassword '123456'*/
             storeFile file(project.STORE_FILE)
             storePassword project.STORE_PASSWORD
             keyAlias project.KEY_ALIAS
@@ -41,6 +36,89 @@ android {
         }
     }
 
+    /*afterEvaluate {
+        android.applicationVariants.all { variant ->
+            variant.assemble.doLast {
+                if (variant.buildType.name.contains('release')) {
+                    def apkPath = variant.outputs.get(0).outputFile as File
+                    exec {
+                        ignoreExitValue true
+                        commandLine "sh", "../../jiagu/jiagu.sh", apkPath, apkPath.getParent()
+                    }
+                }
+            }
+        }
+    }*/
+
+    afterEvaluate {
+        android.applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                def outputFile = output.outputFile
+                if (outputFile != null && outputFile.name.equals('app-release.apk')) {
+                    //修改apk文件名
+                //    def fileName = "app-${defaultConfig.versionName}-${defaultConfig.versionCode}-signed-${releaseTime()}.apk"
+                    def fileName = "app-release-signed.apk"
+                    output.outputFile = new File(outputFile.parent, fileName)
+                }
+            }
+        }
+    }
+
+    task reinforceAppTask(dependsOn: 'assembleRelease') {
+
+        doLast {
+            println "360jiagu begin"
+            def currFile = new File(".")
+            // 这里需要定制为实际的app路径
+            def appFilePath = currFile.getCanonicalPath() +
+                    File.separator + "app" + File.separator + "build" + File.separator + "outputs"+ File.separator + "apk" + File.separator +
+                //    "app-${defaultConfig.versionName}-${defaultConfig.versionCode}-signed-${releaseTime()}.apk";
+                    "app-release.apk"
+            println "appFilePath=" + appFilePath
+
+            if(!new File(appFilePath).exists()){
+                println "apk not exist"
+                return
+            }
+            // 注意这里的jiagu.jar路径，需要指定为实际安装的路径
+            def cmdBase = 'java -jar' + 'D:\\AndroidStudio\\ScouceTreeWorkspace\\MyJenkinsTest\\jiagu\\jiagu.jar'
+
+            def cmdLogin = cmdBase + ' -login 17076612166 360-123456'
+            def cmdImportsign = cmdBase + ' -importsign ' + project.STORE_FILE + ' ' + project.STORE_PASSWORD + ' ' + project.KEY_ALIAS + ' ' + project.KEY_PASSWORD
+            def cmdShowsign = cmdBase + ' -showsign'
+            def cmdConfig = cmdBase + ' -config -x86'
+            def cmdShowconfig = cmdBase + ' -showconfig'
+            def cmdVersion = cmdBase + ' -version'
+            def cmdJiagu = cmdBase + ' -jiagu ' + appFilePath + ' ' + currFile.getCanonicalPath() + ' -autosign'
+
+            execute360JiaguCmd(cmdLogin)
+            execute360JiaguCmd(cmdImportsign)
+            execute360JiaguCmd(cmdShowsign)
+            execute360JiaguCmd(cmdConfig)
+            execute360JiaguCmd(cmdShowconfig)
+            execute360JiaguCmd(cmdVersion)
+            execute360JiaguCmd(cmdJiagu)
+
+            println "360jiagu end"
+        }
+    }
+
+    //如果是执行assembleRelease命令
+    tasks.whenTaskAdded { theTask ->
+        if (theTask.name.equals("assembleRelease")) {
+            //执行以下方法清除
+            theTask.dependsOn "cleanOutputsDir"
+        }
+    }
+
+    //执行以下方法清除
+    task cleanOutputsDir {
+        def outputsPath = getBuildDir().getAbsolutePath() + File.separator + "outputs" + File.separator
+        println "delete outputsPath=" + outputsPath
+        new File(outputsPath).deleteDir()
+    }
+
+
 }
 
 dependencies {
@@ -51,4 +129,13 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
+}
+
+
+def execute360JiaguCmd(cmd){
+    // 注意后面的配置，替换为对应本地安装
+    def p = cmd.execute(null, new File("D:\\AndroidStudio\\ScouceTreeWorkspace\\MyJenkinsTest\\jiagu\\java\\bin"))
+    println p.text
+    p.waitFor()  // 用以等待外部进程调用结束
+    println p.exitValue()
 }
