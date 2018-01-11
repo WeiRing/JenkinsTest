@@ -34,7 +34,32 @@ android {
             signingConfig signingConfigs.myconfigs
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            minifyEnabled false
+            zipAlignEnabled true
+            signingConfig signingConfigs.myconfigs
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
+
+
+
+    /*afterEvaluate {
+        applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                if (output.outputFile != null && output.outputFile.name.endsWith('.apk') &&'release'.equals(variant.buildType.name)) {
+                    def apkFile = new File(
+                            output.outputFile.getParent(),
+                            "myTest${variant.flavorName}_v${variant.versionName}_${buildTime()}.apk")
+                    output.outputFile = apkFile
+                }
+            }
+        }
+    }*/
+
+
+
+
 
     /*afterEvaluate {
         android.applicationVariants.all { variant ->
@@ -50,21 +75,8 @@ android {
         }
     }*/
 
-    afterEvaluate {
-        android.applicationVariants.all { variant ->
-            variant.outputs.each { output ->
-                def outputFile = output.outputFile
-                if (outputFile != null && outputFile.name.equals('app-release.apk')) {
-                    //修改apk文件名
-                //    def fileName = "app-${defaultConfig.versionName}-${defaultConfig.versionCode}-signed-${releaseTime()}.apk"
-                    def fileName = "app-release-signed.apk"
-                    output.outputFile = new File(outputFile.parent, fileName)
-                }
-            }
-        }
-    }
 
-    task reinforceAppTask(dependsOn: 'assembleRelease') {
+  /*  task reinforceAppTask(dependsOn: 'assembleRelease') {
 
         doLast {
             println "360jiagu begin"
@@ -81,7 +93,7 @@ android {
                 return
             }
             // 注意这里的jiagu.jar路径，需要指定为实际安装的路径
-            def cmdBase = 'java -jar' + 'D:\\AndroidStudio\\ScouceTreeWorkspace\\MyJenkinsTest\\jiagu\\jiagu.jar'
+            def cmdBase = 'java -jar' + ' D:\\AndroidStudio\\ScouceTreeWorkspace\\MyJenkinsTest\\jiagu\\jiagu.jar'
 
             def cmdLogin = cmdBase + ' -login 17076612166 360-123456'
             def cmdImportsign = cmdBase + ' -importsign ' + project.STORE_FILE + ' ' + project.STORE_PASSWORD + ' ' + project.KEY_ALIAS + ' ' + project.KEY_PASSWORD
@@ -102,8 +114,12 @@ android {
             println "360jiagu end"
         }
     }
+*/
 
-    //如果是执行assembleRelease命令
+
+
+
+   /* //如果是执行assembleRelease命令
     tasks.whenTaskAdded { theTask ->
         if (theTask.name.equals("assembleRelease")) {
             //执行以下方法清除
@@ -116,8 +132,7 @@ android {
         def outputsPath = getBuildDir().getAbsolutePath() + File.separator + "outputs" + File.separator
         println "delete outputsPath=" + outputsPath
         new File(outputsPath).deleteDir()
-    }
-
+    }*/
 
 }
 
@@ -139,3 +154,14 @@ def execute360JiaguCmd(cmd){
     p.waitFor()  // 用以等待外部进程调用结束
     println p.exitValue()
 }
+
+
+
+def buildTime() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMdd', TimeZone.getTimeZone("UTC"))
+    return formattedDate
+}
+
+
+
